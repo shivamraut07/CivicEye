@@ -1,12 +1,13 @@
 from ultralytics import YOLO
 
 model = YOLO("models/yolov8n.pt")
+model.to("cuda")
 
 VEHICLE_CLASSES = ["car", "motorcycle", "bus", "truck", "bicycle"]
 
 def detect_and_track(frame):
 
-    results = model.track(frame, persist=True)
+    results = model.track(frame, persist=True, device=0)
 
     vehicles = []
 
