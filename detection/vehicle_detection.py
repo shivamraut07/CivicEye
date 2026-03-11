@@ -1,14 +1,15 @@
 from ultralytics import YOLO
 
-# load YOLO model
-model = YOLO("yolov8n.pt")
+# load model
+model = YOLO("models/yolov8n.pt")
 
-# vehicle classes we care about
 VEHICLE_CLASSES = ["car", "bicycle", "motorcycle", "bus", "truck"]
+CONFIDENCE_THRESHOLD = 0.5
+
 
 def detect_vehicles(frame):
 
-    results = model(frame)
+    results = model(frame, device="cpu")
 
     vehicles = []
 
@@ -17,6 +18,11 @@ def detect_vehicles(frame):
 
         for box in boxes:
 
+            confidence = float(box.conf[0])
+
+            if confidence < CONFIDENCE_THRESHOLD:
+                continue
+
             cls_id = int(box.cls[0])
             label = model.names[cls_id]
 
@@ -24,12 +30,10 @@ def detect_vehicles(frame):
 
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
 
-                vehicle_data = {
+                vehicles.append({
                     "label": label,
                     "bbox": (x1, y1, x2, y2),
-                    "confidence": float(box.conf[0])
-                }
-
-                vehicles.append(vehicle_data)
+                    "confidence": confidence
+                })
 
     return vehicles
