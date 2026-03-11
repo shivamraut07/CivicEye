@@ -1,39 +1,35 @@
 from ultralytics import YOLO
 
-# load model
 model = YOLO("models/yolov8n.pt")
 
-VEHICLE_CLASSES = ["car", "bicycle", "motorcycle", "bus", "truck"]
-CONFIDENCE_THRESHOLD = 0.5
+VEHICLE_CLASSES = ["car", "motorcycle", "bus", "truck", "bicycle"]
 
+def detect_and_track(frame):
 
-def detect_vehicles(frame):
-
-    results = model(frame, device="cpu")
+    results = model.track(frame, persist=True)
 
     vehicles = []
 
-    for result in results:
-        boxes = result.boxes
+    for r in results:
+        boxes = r.boxes
 
-        for box in boxes:
+        if boxes.id is None:
+            continue
 
-            confidence = float(box.conf[0])
+        for box, track_id in zip(boxes.xyxy, boxes.id):
 
-            if confidence < CONFIDENCE_THRESHOLD:
-                continue
-
-            cls_id = int(box.cls[0])
+            cls_id = int(boxes.cls[0])
             label = model.names[cls_id]
 
-            if label in VEHICLE_CLASSES:
+            if label not in VEHICLE_CLASSES:
+                continue
 
-                x1, y1, x2, y2 = map(int, box.xyxy[0])
+            x1, y1, x2, y2 = map(int, box)
 
-                vehicles.append({
-                    "label": label,
-                    "bbox": (x1, y1, x2, y2),
-                    "confidence": confidence
-                })
+            vehicles.append({
+                "id": int(track_id),
+                "label": label,
+                "bbox": (x1, y1, x2, y2)
+            })
 
     return vehicles
