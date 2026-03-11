@@ -76,7 +76,7 @@ def main():
 
             # Violation detection
             if check_speed_violation(v):
-                log_violation(v, "speeding")
+                log_violation(v, "speeding", frame)
 
         cv2.imshow("CivicEye Demo", frame)
 
